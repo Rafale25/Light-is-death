@@ -1,0 +1,14 @@
+You can only live in the white (or black)
+
+map with moving object like this
+https://www.youtube.com/watch?v=gD7YHtFP-4k&t=8s
+
+move with ZQSD
+charge de dash
+space pour dash (dash dans une direction tant que la barre de dash n'est pas à 0 et que space et pressé)
+
+
+
+when the timer reaches 0, it resets itself and the colors invert
+
+goal is survive the longest by dashing between 2 color when the time reach 0
