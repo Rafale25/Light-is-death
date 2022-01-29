@@ -15,11 +15,22 @@ from array import array
 from fps_counter import FpsCounter
 from shapes import ShapeBuilder
 
-import time
+# import time
 
 ## to have a concret object for moving shapes instead of a list
 class Shape:
-    pass
+    def __init__(self, x, y, angle, scale, dir, speed, shape):
+        self.x = x
+        self.y = y
+        self.angle = angle
+        self.scale = scale
+        self.dir = dir
+        self.speed = speed
+        self.shape = shape
+
+    def update(self):
+        self.x += cos(self.dir) * self.speed
+        self.y += sin(self.dir) * self.speed
 
 class MyWindow(moderngl_window.WindowConfig):
     title = 'Global Game-jam 2022'
@@ -77,7 +88,7 @@ class MyWindow(moderngl_window.WindowConfig):
             speed = uniform(0.2, 1) * 0.5
             angle = uniform(0, tau)
             scale = uniform(200, self.wnd.width/3)
-            shapes.append([x, y, angle, scale, dir, speed, shape])
+            shapes.append(Shape(x, y, angle, scale, dir, speed, shape))
         return shapes
 
     def update_uniforms(self, frametime):
@@ -89,20 +100,19 @@ class MyWindow(moderngl_window.WindowConfig):
         self.update_uniforms(frametime)
 
         for shape in self.shapes:
-            shape[0] += cos(shape[4]) * shape[5]
-            shape[1] += sin(shape[4]) * shape[5]
+            shape.update()
 
     def render_shapes(self):
         for i, shape in enumerate(self.shapes):
             m = glm.mat4(1.0)
-            m = glm.translate(m, glm.vec3(shape[0], shape[1], 0))
-            m = glm.rotate(m, shape[2], glm.vec3(0, 0, 1))
-            m = glm.scale(m, glm.vec3(shape[3]))
+            m = glm.translate(m, glm.vec3(shape.x, shape.y, 0))
+            m = glm.rotate(m, shape.angle, glm.vec3(0, 0, 1))
+            m = glm.scale(m, glm.vec3(shape.scale))
 
             self.program['SHAPE']['u_modelMatrix'].write(m)
 
             with self.query:
-                if shape[6] == 0:
+                if shape.shape == 0:
                     self.vao_quad.render(program=self.program['SHAPE'])
                 else:
                     self.vao_disk.render(program=self.program['SHAPE'])
