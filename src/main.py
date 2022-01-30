@@ -40,6 +40,43 @@ STATE_START = 0
 STATE_PLAYING = 1
 STATE_OVER = 2
 
+vert=\
+"""
+#version 330
+
+uniform mat4 u_projectionMatrix;
+uniform mat4 u_modelMatrix;
+
+in vec2 in_vert;
+
+void main() {
+    gl_Position = u_projectionMatrix * u_modelMatrix * vec4(in_vert, 0.0, 1.0);
+}
+
+"""
+
+frag=\
+"""
+#version 430
+
+out vec4 f_color;
+
+uniform sampler2D u_texture;
+
+void main() {
+    ivec2 uv = ivec2(gl_FragCoord.xy);
+    vec3 texel_color = texelFetch(u_texture, uv, 0).rgb;
+
+    vec3 color = vec3(1.0, 1.0, 1.0);
+
+    if (texel_color.r > 0.5) {
+        color = vec3(0.0, 0.0, 0.0);
+    }
+
+    f_color = vec4(color, 1.0);
+}
+"""
+
 class MyGame(arcade.Window):
     def __init__(self, width, height, title):
         super().__init__(width, height, title)
@@ -47,6 +84,7 @@ class MyGame(arcade.Window):
         arcade.set_background_color((0, 0, 0))
         self.set_vsync(True)
         self.set_update_rate(1.0 / 60.0)
+        self.set_fullscreen(True)
 
     def setup(self):
         self.projection = arcade.create_orthogonal_projection(0, self.width, 0, self.height)
@@ -57,9 +95,12 @@ class MyGame(arcade.Window):
         )
 
         self.program = {
-            "SHAPE": self.ctx.load_program(
-                vertex_shader=f'{ASSETS_PATH}/shape.vert',
-                fragment_shader=f'{ASSETS_PATH}/shape.frag'),
+            "SHAPE": self.ctx.program(
+                vertex_shader=vert,
+                fragment_shader=frag)
+            # "SHAPE": self.ctx.load_program(
+            #     vertex_shader=f'{ASSETS_PATH}/shape.vert',
+            #     fragment_shader=f'{ASSETS_PATH}/shape.frag'),
         }
         self.program['SHAPE']['u_texture'] = 0
 
@@ -227,6 +268,16 @@ class MyGame(arcade.Window):
                 start_y=self.height/4,
                 anchor_x="center",
                 anchor_y="center")
+        if 5 < self.time_since_start < 7:
+            arcade.draw_text(
+                text="You are invicible while dashing",
+                bold=True,
+                font_size=22,
+                multiline=True,
+                start_x=self.width/2,
+                start_y=self.height/4,
+                anchor_x="center",
+                anchor_y="center")
 
         self.texture.use(unit=0)
 
@@ -237,9 +288,9 @@ class MyGame(arcade.Window):
 
         ## Dead if on whiteColor or out of screen
         pixel_color = arcade.get_pixel(*self.player.pos)
-        # if (not self.player.is_dashing and pixel_color[0] > 128) or\
-        #         not (0 < self.player.x < self.width and 0 < self.player.y < self.height):
-        #     self.game_state = STATE_OVER
+        if (not self.player.is_dashing and pixel_color[0] > 128) or\
+                not (0 < self.player.x < self.width and 0 < self.player.y < self.height):
+            self.game_state = STATE_OVER
             # print("DEAD")
 
         ## draw trail particles (trailSystem)

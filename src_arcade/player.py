@@ -27,7 +27,7 @@ class Player:
         self.dash = False ## is space pressed
         self.is_dashing = False ## is character currently dashing
 
-        self.max_dash_cooldown = 0.5 #seconds
+        self.max_dash_cooldown = 0.75 #seconds
         self.dash_cooldown = self.max_dash_cooldown
 
         self.dash_stamina = 1.0 #0.0 -> 1.0
