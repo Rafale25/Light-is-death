@@ -19,10 +19,12 @@ OK - finir le dash:
     - peut dasher toutes les n secondes
     - afficher le cooldown au dessus du joueur
 
-- game over quand touche du noir (ou blanc)
-- start/play button
-
+OK - game over quand touche du noir (ou blanc)
+OK - start/play button
+OK - highscore
 
 # bonus
-- faire une trainé de particules derrière le dash
-- mini text that fade in to explain what to do
+OK - faire une trainé de particules derrière le dash
+
+OK - mini text that fade in to explain what to do
+- shapes in menu doing black & white effect on "start" text

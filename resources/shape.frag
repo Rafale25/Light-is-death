@@ -1,9 +1,8 @@
 #version 430
 
-out vec4 fragColor;
+out vec4 f_color;
 
 uniform sampler2D u_texture;
-// uniform sampler2DMS msaa_texture;
 
 void main() {
     ivec2 uv = ivec2(gl_FragCoord.xy);
@@ -15,5 +14,5 @@ void main() {
         color = vec3(0.0, 0.0, 0.0);
     }
 
-    fragColor = vec4(color, 1.0);
+    f_color = vec4(color, 1.0);
 }
