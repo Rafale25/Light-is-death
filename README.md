@@ -1,1 +1,3 @@
-# Global-GameJam-2022
+# Light is death
+
+Game made for the Global-GameJam-2022
