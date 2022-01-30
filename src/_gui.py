@@ -4,11 +4,13 @@ def imgui_newFrame(self, frametime):
     imgui.new_frame()
     imgui.begin("Properties", True)
 
+    imgui.text("Dash Stamina: {}".format(self.player.dash_stamina));
+    imgui.text("Nb shapes: {}".format(len(self.shapes)));
+
     imgui.text("fps: {:.2f}".format(self.fps_counter.get_fps()))
     for query, value in self.query_debug_values.items():
         imgui.text("{}: {:.2f} ms".format(query, value))
 
-    # imgui.text("x: {:.2f}\ny: {:.2f}\nz: {:.2f}".format(*self.camera.position.xyz))
 
     imgui.spacing(); imgui.spacing()
 

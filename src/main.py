@@ -9,16 +9,17 @@ from moderngl_window.integrations.imgui import ModernglWindowRenderer
 from moderngl_window.opengl.vao import VAO
 
 from random import randint, uniform
-from math import cos, sin, pi, tau, radians
+from math import cos, sin, atan2, pi, tau, radians
 from array import array
+
+from utils import *
 
 from fps_counter import FpsCounter
 from shapes import ShapeBuilder
+from player import Player
 
-# import time
-
-## to have a concret object for moving shapes instead of a list
 class Shape:
+    ## to have a concret object for moving shapes instead of a list
     def __init__(self, x, y, angle, scale, dir, speed, shape):
         self.x = x
         self.y = y
@@ -53,17 +54,20 @@ class MyWindow(moderngl_window.WindowConfig):
         self.fps_counter = FpsCounter()
 
         self.projection = glm.ortho(0, self.wnd.width, 0, self.wnd.height)
+        # self.projection = glm.ortho(-self.wnd.width*2, self.wnd.width*4, -self.wnd.height*2, self.wnd.height*4)
 
         self.texture = self.ctx.texture(self.wnd.buffer_size, 4)
         self.fbo = self.ctx.framebuffer(
             color_attachments=self.texture
         )
-        self.quad_fs = moderngl_window.geometry.quad_fs()
 
         self.program = {
             "SHAPE": self.load_program(
                 vertex_shader='./shape.vert',
                 fragment_shader='./shape.frag'),
+            "PLAYER": self.load_program(
+                vertex_shader='./player.vert',
+                fragment_shader='./player.frag'),
         }
 
         vertices = array('f', ShapeBuilder.quad())
@@ -75,40 +79,76 @@ class MyWindow(moderngl_window.WindowConfig):
         self.vao_disk.buffer(self.ctx.buffer(vertices), '2f', ['v_vert'])
 
         ## game
+        self.player = Player(x=self.wnd.width/2, y=self.wnd.height/2)
+        
+        self.max_shapes = 200
+
         ## 0 == cube; 1 == disk
-        self.shapes = self.generate_shapes(n=20)
+        self.shapes = []
 
     def generate_shapes(self, n):
-        shapes = []
         for i in range(n):
             shape = randint(0, 1)
-            x = uniform(100, self.wnd.width-100)
-            y = uniform(100, self.wnd.height-100)
-            dir = uniform(0, tau)
-            speed = uniform(0.2, 1) * 0.5
+
+            ## coming offscreen to somewhere into the screen
+            x, y = random_uniform_vec2() * uniform(self.wnd.width, self.wnd.width*1.5)
+            x += self.wnd.width/2
+            y += self.wnd.height/2
+
+            ## point in screen to get direction
+            px, py = uniform(0, self.wnd.width), uniform(0, self.wnd.height)
+            dx, dy = px - x, py - y
+            dir = atan2(dy, dx)
+
+            ## random
+            # x = uniform(100, self.wnd.width-100)
+            # y = uniform(100, self.wnd.height-100)
+            # dir = uniform(0, tau)
+
+            speed = uniform(0.3, 1.2) * 10
             angle = uniform(0, tau)
             scale = uniform(200, self.wnd.width/3)
-            shapes.append(Shape(x, y, angle, scale, dir, speed, shape))
-        return shapes
+
+            yield Shape(x, y, angle, scale, dir, speed, shape)
+
+        if n > 1:
+            self.generate_shapes(n=n-1)
 
     def update_uniforms(self, frametime):
-        self.program['SHAPE']['u_projectionMatrix'].write(self.projection)
+        for str, program in self.program.items():
+            program['u_projectionMatrix'].write(self.projection)
+
         self.program['SHAPE']['u_texture'] = 0
 
     def update(self, time_since_start, frametime):
         self.fps_counter.update(frametime)
         self.update_uniforms(frametime)
+        self.player.update()
+
+        #TODO: better would be to check if a shape is going to be offscreen
+        def isOffScreen(shape, margin=self.wnd.width*1.1):
+            return shape.x < -margin - shape.scale or\
+                shape.x > margin + self.wnd.width + shape.scale or\
+                shape.y < -margin - shape.scale or\
+                shape.y > margin + self.wnd.height + shape.scale
+            # if ok:
+            #     print(f"OFFFSCREN !! {shape.x} {shape.y}")
+            # return ok
+
+        ## Remove shapes that are off bounds
+        self.shapes[:] = (x for x in self.shapes if not isOffScreen(x))
+
+        if len(self.shapes) < self.max_shapes:
+            self.shapes.extend(self.generate_shapes(n=1))
 
         for shape in self.shapes:
             shape.update()
 
+
+
     def render_shapes(self):
         for i, shape in enumerate(self.shapes):
-            m = glm.mat4(1.0)
-            m = glm.translate(m, glm.vec3(shape.x, shape.y, 0))
-            m = glm.rotate(m, shape.angle, glm.vec3(0, 0, 1))
-            m = glm.scale(m, glm.vec3(shape.scale))
-
+            m = toMatrix(x=shape.x, y=shape.y, angle=shape.angle, scale=shape.scale)
             self.program['SHAPE']['u_modelMatrix'].write(m)
 
             with self.query:
@@ -121,16 +161,23 @@ class MyWindow(moderngl_window.WindowConfig):
     def render(self, time_since_start, frametime):
         self.update(time_since_start, frametime)
 
+        self.ctx.disable(moderngl.DEPTH_TEST) # disables wireframe and depth_test for imgui
         # self.ctx.clear(0, 0, 0, 1)
 
-        self.fbo.clear(0, 0, 0, 1)
+        ## Black & White
+        self.fbo.clear(1, 1, 1, 1)
         self.fbo.use()
         self.texture.use(location=0)
         self.render_shapes()
+
+        ## Player
+        self.program['PLAYER']['u_modelMatrix'].write(
+            toMatrix(x=self.player.x, y=self.player.y, scale=self.player.scale))
+        self.vao_quad.render(program=self.program['PLAYER'])
+
         self.ctx.copy_framebuffer(src=self.fbo, dst=self.ctx.screen)
 
         self.ctx.screen.use()
-        self.ctx.disable(moderngl.DEPTH_TEST) # disables wireframe and depth_test for imgui
 
         self.imgui_newFrame(frametime)
         self.imgui_render()
