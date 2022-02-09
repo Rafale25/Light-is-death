@@ -1,5 +1,6 @@
 #! /usr/bin/python3
 
+import pyglet
 import arcade
 
 from random import randint, uniform
@@ -21,20 +22,6 @@ SCREEN_TITLE = "Global Game-Jam 2022"
 
 ASSETS_PATH = Path(__file__).parent.parent.resolve() / "resources"
 
-class Shape:
-    ## to have a concret object for moving shapes instead of a list
-    def __init__(self, x, y, angle, scale, dir, speed, shape):
-        self.x = x
-        self.y = y
-        self.angle = angle
-        self.scale = scale
-        self.dir = dir
-        self.speed = speed
-        self.shape = shape
-
-    def update(self):
-        self.x += cos(self.dir) * self.speed
-        self.y += sin(self.dir) * self.speed
 
 STATE_START = 0
 STATE_PLAYING = 1
@@ -98,9 +85,6 @@ class MyGame(arcade.Window):
             "SHAPE": self.ctx.program(
                 vertex_shader=vert,
                 fragment_shader=frag)
-            # "SHAPE": self.ctx.load_program(
-            #     vertex_shader=f'{ASSETS_PATH}/shape.vert',
-            #     fragment_shader=f'{ASSETS_PATH}/shape.frag'),
         }
         self.program['SHAPE']['u_texture'] = 0
 
@@ -118,16 +102,6 @@ class MyGame(arcade.Window):
         ## Dash particules trail
         self.trailSystem = ParticleSystem()
 
-        ## Shapes
-        self.max_time_next_shape = 1
-        self.time_next_shape = self.max_time_next_shape
-
-        ## 0 == cube; 1 == disk
-        self.shapes = []
-        self.max_shapes = 10
-        self.max_cooldown_increase_max_shapes = 2.0 #seconds
-        self.cooldown_increase_max_shapes = self.max_cooldown_increase_max_shapes
-
         ## Game Logic
         # self.started = False
         self.game_state = STATE_START
@@ -135,46 +109,11 @@ class MyGame(arcade.Window):
         ## HighScore
         self.time_since_start = 0.0
 
-    def generate_shapes(self, n=1):
-        for i in range(n):
-            shape = randint(0, 1)
+        self.media_player = pyglet.media.Player()
+        self.media_player.queue(pyglet.media.load("Bad-Apple.flv"))
+        self.media_player.seek_next_frame()
 
-            ## coming offscreen to somewhere into the screen
-            x, y = random_uniform_vec2()
-            x = (x * self.width) + self.width/2
-            y = (y * self.width) + self.height/2
-
-            ## point in screen to get direction
-            px, py = uniform(0, self.width), uniform(0, self.height)
-            dx, dy = px - x, py - y
-            dir = atan2(dy, dx)
-
-            ## random
-            # x = uniform(100, self.width-100)
-            # y = uniform(100, self.height-100)
-            # dir = uniform(0, tau)
-
-            speed = uniform(0.3, 1.2) * 3
-            angle = uniform(0, tau)
-            scale = uniform(200, self.width/3)
-
-            yield Shape(x, y, angle, scale, dir, speed, shape)
-
-        if n > 1:
-            self.generate_shapes(n=n-1)
-
-    def render_shapes(self):
-        self.program['SHAPE']['u_projectionMatrix'] = self.projection
-
-        for i, shape in enumerate(self.shapes):
-            m = toMatrix(x=shape.x, y=shape.y, angle=shape.angle, scale=shape.scale)
-            self.program['SHAPE']['u_modelMatrix'] = m
-            if shape.shape == 0:
-                self.quad.render(program=self.program['SHAPE'])
-            else:
-                self.disk.render(program=self.program['SHAPE'])
-
-            self.ctx.flush()
+        self.tick = 1
 
     def draw_start(self):
         self.fbo.use()
@@ -193,8 +132,6 @@ class MyGame(arcade.Window):
         self.ctx.flush()
 
         self.texture.use(unit=0)
-
-        self.render_shapes()
 
         self.ctx.copy_framebuffer(src=self.fbo, dst=self.ctx.screen)
         self.ctx.screen.use()
@@ -281,7 +218,20 @@ class MyGame(arcade.Window):
 
         self.texture.use(unit=0)
 
-        self.render_shapes()
+        ## draw here
+        self.tick -= 1
+        if self.tick <= 0:
+            self.tick = 3
+            self.media_player.seek_next_frame()
+
+        with self.ctx.pyglet_rendering():
+            self.ctx.disable(self.ctx.BLEND)
+            self.media_player.texture.blit(
+                0,
+                0,
+                width=self.width,
+                height=self.height,
+            )
 
         self.ctx.copy_framebuffer(src=self.fbo, dst=self.ctx.screen)
         self.ctx.screen.use()
@@ -323,46 +273,18 @@ class MyGame(arcade.Window):
 
         ## do not do game logic if game not started
         if self.game_state == STATE_START:
-            self.shapes[:] = (x for x in self.shapes if not self.isOffScreen(x))
-
-            self.time_next_shape -= delta_time
-            if self.time_next_shape <= 0.0:
-
-                if len(self.shapes) < 10:
-                    self.shapes.extend(self.generate_shapes(n=2))
-                    self.time_next_shape = self.max_time_next_shape
-
-            for shape in self.shapes:
-                shape.update()
+            pass
 
         if self.game_state != STATE_PLAYING: return
 
         ## add deltatime because highscore is the time you survived
         self.time_since_start += delta_time
 
-        self.cooldown_increase_max_shapes -= delta_time
-        if self.cooldown_increase_max_shapes <= 0.0:
-            self.cooldown_increase_max_shapes = self.max_cooldown_increase_max_shapes
-            self.max_shapes += 1
-
         self.player.update(delta_time)
         if self.player.is_dashing:
             self.trailSystem.spawn(*(self.player.pos + random_uniform_vec2()*(5,5)))
 
         self.trailSystem.update(delta_time)
-
-        ## Remove shapes that are off bounds
-        self.shapes[:] = (x for x in self.shapes if not self.isOffScreen(x))
-
-        self.time_next_shape -= delta_time
-        if self.time_next_shape <= 0.0:
-
-            if len(self.shapes) < self.max_shapes:
-                self.shapes.extend(self.generate_shapes(n=1))
-                self.time_next_shape = self.max_time_next_shape
-
-        for shape in self.shapes:
-            shape.update()
 
     def on_key_press(self, key, key_modifiers):
         if key == arcade.key.ESCAPE:
@@ -371,7 +293,6 @@ class MyGame(arcade.Window):
         if key == arcade.key.SPACE:
             if self.game_state == STATE_START:
                 self.game_state = STATE_PLAYING
-                self.shapes[:] = []
 
             elif self.game_state == STATE_OVER:
                 self.setup()
