@@ -5,7 +5,7 @@ from utils import random_uniform_vec2
 class Particle:
     def __init__(self, x, y):
         self.pos = Vec2(x, y)
-        self.vel = random_uniform_vec2() * (0.5, 0.5)
+        self.vel = random_uniform_vec2() * 0.5
         self.lifetime = uniform(0.8, 1.2) #seconds
 
     @property
@@ -20,7 +20,7 @@ class Particle:
         return self.lifetime <= 0.0
 
     def update(self, delta_time):
-        self.pos += self.vel * (self.lifetime, self.lifetime)
+        self.pos += self.vel * self.lifetime
         self.lifetime -= delta_time
 
 class ParticleSystem:

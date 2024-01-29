@@ -10,6 +10,8 @@ import time
 
 from pyglet.math import Mat4
 
+from OpenGL.GL import *
+
 from utils import *
 from player import Player
 from shapes import ShapeBuilder
@@ -61,17 +63,17 @@ frag=\
 
 out vec4 f_color;
 
-uniform sampler2D u_texture;
+// uniform sampler2D u_texture;
 
 void main() {
     ivec2 uv = ivec2(gl_FragCoord.xy);
-    vec3 texel_color = texelFetch(u_texture, uv, 0).rgb;
+    //vec3 texel_color = texelFetch(u_texture, uv, 0).rgb;
 
     vec3 color = vec3(1.0, 1.0, 1.0);
 
-    if (texel_color.r > 0.5) {
-        color = vec3(0.0, 0.0, 0.0);
-    }
+    //if (texel_color.r > 0.5) {
+    //    color = vec3(0.0, 0.0, 0.0);
+    //}
 
     f_color = vec4(color, 1.0);
 }
@@ -87,7 +89,11 @@ class MyGame(arcade.Window):
         self.set_fullscreen(True)
 
     def setup(self):
-        self.projection = arcade.create_orthogonal_projection(0, self.width, 0, self.height)
+        # self.projection = Mat4.orthogonal_projection(0, self.width, 0, self.height, -1, 1)
+        self.projection = Mat4.orthogonal_projection(0, self.width, 0, self.height, -1, 1)
+        # self.projection = Mat4.create_orthogonal_projection(0, self.width, 0, self.height)
+
+        arcade.enable_timings()
 
         self.texture = self.ctx.texture(size=self.get_framebuffer_size(), components=4)
         self.fbo = self.ctx.framebuffer(
@@ -102,7 +108,7 @@ class MyGame(arcade.Window):
             #     vertex_shader=f'{ASSETS_PATH}/shape.vert',
             #     fragment_shader=f'{ASSETS_PATH}/shape.frag'),
         }
-        self.program['SHAPE']['u_texture'] = 0
+        # self.program['SHAPE']['u_texture'] = 0
 
         self.quad = arcade.gl.geometry.quad_2d(size=(1, 1), pos=(0, 0))
         self.disk = self.ctx.geometry([arcade.gl.BufferDescription(
@@ -174,7 +180,7 @@ class MyGame(arcade.Window):
             else:
                 self.disk.render(program=self.program['SHAPE'])
 
-            self.ctx.flush()
+            # self.ctx.flush()
 
     def draw_start(self):
         self.fbo.use()
@@ -248,6 +254,7 @@ class MyGame(arcade.Window):
             anchor_y="center")
         self.ctx.flush()
 
+
         ## tutorial text
         if self.time_since_start < 3:
             arcade.draw_text(
@@ -281,12 +288,21 @@ class MyGame(arcade.Window):
 
         self.texture.use(unit=0)
 
+        glClear(GL_STENCIL_BUFFER_BIT)
+        glStencilMask(1)
+
+        glEnable(GL_COLOR_LOGIC_OP)
+        glLogicOp(GL_INVERT)
+
         self.render_shapes()
+
+        glDisable(GL_COLOR_LOGIC_OP)
+
 
         self.ctx.copy_framebuffer(src=self.fbo, dst=self.ctx.screen)
         self.ctx.screen.use()
 
-        ## Dead if on whiteColor or out of screen
+        # Dead if on whiteColor or out of screen
         pixel_color = arcade.get_pixel(*self.player.pos)
         if (not self.player.is_dashing and pixel_color[0] > 128) or\
                 not (0 < self.player.x < self.width and 0 < self.player.y < self.height):
@@ -347,7 +363,7 @@ class MyGame(arcade.Window):
 
         self.player.update(delta_time)
         if self.player.is_dashing:
-            self.trailSystem.spawn(*(self.player.pos + random_uniform_vec2()*(5,5)))
+            self.trailSystem.spawn(*(self.player.pos + random_uniform_vec2() * 5.0))
 
         self.trailSystem.update(delta_time)
 

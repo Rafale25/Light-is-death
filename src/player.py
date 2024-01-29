@@ -65,25 +65,25 @@ class Player:
 
         if not self.is_dashing:
             ## ZQSD Movements
-            self.vel = Vec2(0, 0)
+            self.vel = Vec2(0.0, 0.0)
 
             if self.move_up:
-                self.vel += (0, 1)
+                self.vel += Vec2(0.0, 1.0)
             if self.move_down:
-                self.vel -= (0, 1)
+                self.vel -= Vec2(0.0, 1.0)
             if self.move_left:
-                self.vel -= (1, 0)
+                self.vel -= Vec2(1.0, 0.0)
             if self.move_right:
-                self.vel += (1, 0)
+                self.vel += Vec2(1.0, 0.0)
 
         ## Apply vel ...
         if self.vel.mag > 0.001:
             self.vel = self.vel.normalize()
 
         if self.is_dashing:
-            self.vel *= (self.dash_mult,self.dash_mult)
+            self.vel *= self.dash_mult
 
-        self.pos += self.vel * (self.speed,self.speed)
+        self.pos += self.vel * self.speed
 
     def key_input(self, key, action, modifiers):
         ## Up

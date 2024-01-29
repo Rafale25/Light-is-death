@@ -2,8 +2,9 @@ from pyglet.math import Mat4, Vec2
 from math import sqrt, pow
 from random import uniform
 
-def toMatrix(x, y, angle=0, scale=1):
-    return Mat4().scale((scale, scale, 1)).rotate(angle, (0, 0, 1)).translate((x, y, 0))
+def toMatrix(x, y, angle=0.0, scale=1.0):
+    # return Mat4().scale((scale, scale, 1)).rotate(angle, (0, 0, 1)).translate((x, y, 0))
+    return Mat4().translate((x, y, 0)).scale((scale, scale, 1)).rotate(angle, (0, 0, 1)) # No idea why all operations had to be reversed
 
 def random_uniform_vec2():
     v = Vec2(uniform(-1.0, 1.0), uniform(-1.0, 1.0))
