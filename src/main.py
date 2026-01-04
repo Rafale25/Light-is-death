@@ -118,6 +118,56 @@ class MyGame(arcade.Window):
         ## HighScore
         self.time_since_start = 0.0
 
+        self.text_start = arcade.Text(
+            text="Press SPACE to start !!",
+            x=self.width/2,
+            y=self.height/2,
+            font_size=42,
+            bold=True,
+            anchor_x="center",
+            anchor_y="center"
+        )
+
+        self.text_tutorial = arcade.Text(
+            text="",
+            x=self.width/2,
+            y=self.height/4,
+            bold=True,
+            font_size=22,
+            anchor_x="center",
+            anchor_y="center"
+        )
+
+        self.text_highscore = arcade.Text(
+            text="HighScore: 0",
+            x=self.width/2,
+            y=self.height - 35,
+            font_size=22,
+            bold=True,
+            anchor_x="center",
+            anchor_y="center"
+        )
+
+        self.text_gameover = arcade.Text(
+            text="Game Over :(",
+            x=self.width/2,
+            y=self.height/2,
+            font_size=42,
+            bold=True,
+            anchor_x="center",
+            anchor_y="center",
+        )
+
+        self.text_gameover_highscore = arcade.Text(
+            text="HighScore: {}".format(round(self.time_since_start)),
+            x=self.width/2,
+            y=self.height/2 + 150,
+            font_size=18,
+            bold=True,
+            anchor_x="center",
+            anchor_y="center",
+        )
+
     def generate_shapes(self, n=1):
         for i in range(n):
             shape = randint(0, 1)
@@ -166,39 +216,19 @@ class MyGame(arcade.Window):
         glDisable(GL_COLOR_LOGIC_OP)
 
     def draw_start(self):
-        arcade.draw_text(
-            text="Press SPACE to start !!",
-            x=self.width/2,
-            y=self.height/2,
-            font_size=42,
-            bold=True,
-            anchor_x="center",
-            anchor_y="center",
-            rotation=sin(time.time() * 3) * 10)
+        self.text_start.rotation = sin(time.time() * 3) * 10
+        self.text_start.draw()
 
         self.ctx.flush()
         self.render_shapes()
 
     def draw_over(self):
-        arcade.draw_text(
-            text="Game Over :(",
-            x=self.width/2,
-            y=self.height/2,
-            font_size=42,
-            bold=True,
-            anchor_x="center",
-            anchor_y="center",
-            rotation=sin(time.time() * 3) * 10)
+        self.text_gameover.rotation = sin(time.time() * 3) * 10
+        self.text_gameover.draw()
 
-        arcade.draw_text(
-            text="HighScore: {}".format(round(self.time_since_start)),
-            x=self.width/2,
-            y=self.height/2 + 150,
-            font_size=18,
-            bold=True,
-            anchor_x="center",
-            anchor_y="center",
-            rotation=cos(time.time() * 3) * 10)
+        self.text_gameover_highscore.text = "HighScore: {}".format(round(self.time_since_start))
+        self.text_gameover_highscore.rotation = cos(time.time() * 3) * 10
+        self.text_gameover_highscore.draw()
 
     def on_draw(self):
         self.clear()
@@ -214,43 +244,19 @@ class MyGame(arcade.Window):
 
         ## drawing text here so it can kills player >:p
         ## draw HighScore
-        arcade.draw_text(
-            text="HighScore: {}".format(round(self.time_since_start)),
-            x=self.width/2,
-            y=self.height - 35,
-            font_size=22,
-            bold=True,
-            anchor_x="center",
-            anchor_y="center")
+        self.text_highscore.text = "HighScore: {}".format(round(self.time_since_start))
+        self.text_highscore.draw()
 
         ## tutorial text
         if self.time_since_start < 3:
-            arcade.draw_text(
-                text="Light kills you :)",
-                x=self.width/2,
-                y=self.height/4,
-                bold=True,
-                font_size=22,
-                anchor_x="center",
-                anchor_y="center")
-        if 3 < self.time_since_start < 5:
-            arcade.draw_text(
-                text="ZQSD for moving, Space to dash",
-                x=self.width/2,
-                y=self.height/4,
-                bold=True,
-                font_size=22,
-                anchor_x="center",
-                anchor_y="center")
-        if 5 < self.time_since_start < 7:
-            arcade.draw_text(
-                text="You are invicible while dashing",
-                x=self.width/2,
-                y=self.height/4,
-                bold=True,
-                font_size=22,
-                anchor_x="center",
-                anchor_y="center")
+            self.text_tutorial.text = "Light kills you :)"
+        elif self.time_since_start < 5:
+            self.text_tutorial.text = "ZQSD for moving, Space to dash"
+        elif self.time_since_start < 7:
+            self.text_tutorial.text = "You are invicible while dashing"
+
+        if self.time_since_start < 7:
+            self.text_tutorial.draw()
 
         self.ctx.flush()
 
