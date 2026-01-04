@@ -13,8 +13,8 @@ from player import Player
 from shapes import ShapeBuilder
 from particles import ParticleSystem
 
-SCREEN_WIDTH = 1920
-SCREEN_HEIGHT = 1080
+SCREEN_WIDTH = 1280
+SCREEN_HEIGHT = 720
 SCREEN_TITLE = "Global Game-Jam 2022"
 
 ASSETS_PATH = Path(__file__).parent.parent.resolve() / "resources"
@@ -67,13 +67,13 @@ void main() {
 """
 
 class MyGame(arcade.Window):
-    def __init__(self, width, height, title):
-        super().__init__(width, height, title)
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
 
-        arcade.set_background_color((0, 0, 0))
+        self.set_fullscreen(True)
         self.set_vsync(True)
         self.set_update_rate(1.0 / 60.0)
-        self.set_fullscreen(True)
+        arcade.set_background_color((0, 0, 0))
 
     def setup(self):
         self.projection = Mat4.orthogonal_projection(0, self.width, 0, self.height, -1, 1)
@@ -365,6 +365,6 @@ class MyGame(arcade.Window):
 
 
 if __name__ == "__main__":
-    game = MyGame(SCREEN_WIDTH, SCREEN_HEIGHT, SCREEN_TITLE)
+    game = MyGame(width=SCREEN_WIDTH, height=SCREEN_HEIGHT, title=SCREEN_TITLE, fullscreen=True, vsync=True)
     game.setup()
     arcade.run()
