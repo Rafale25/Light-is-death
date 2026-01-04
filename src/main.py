@@ -1,17 +1,13 @@
 #! /usr/bin/python3
 
 import arcade
-
 from random import randint, uniform
-from math import cos, sin, atan2, pi, tau, radians
+from math import cos, sin, atan2, tau
 from array import array
 from pathlib import Path
 import time
-
 from pyglet.math import Mat4
-
 from OpenGL.GL import *
-
 from utils import *
 from player import Player
 from shapes import ShapeBuilder
@@ -172,10 +168,10 @@ class MyGame(arcade.Window):
     def draw_start(self):
         arcade.draw_text(
             text="Press SPACE to start !!",
-            bold=True,
+            x=self.width/2,
+            y=self.height/2,
             font_size=42,
-            start_x=self.width/2,
-            start_y=self.height/2,
+            bold=True,
             anchor_x="center",
             anchor_y="center",
             rotation=sin(time.time() * 3) * 10)
@@ -186,20 +182,20 @@ class MyGame(arcade.Window):
     def draw_over(self):
         arcade.draw_text(
             text="Game Over :(",
-            bold=True,
+            x=self.width/2,
+            y=self.height/2,
             font_size=42,
-            start_x=self.width/2,
-            start_y=self.height/2,
+            bold=True,
             anchor_x="center",
             anchor_y="center",
             rotation=sin(time.time() * 3) * 10)
 
         arcade.draw_text(
             text="HighScore: {}".format(round(self.time_since_start)),
-            bold=True,
+            x=self.width/2,
+            y=self.height/2 + 150,
             font_size=18,
-            start_x=self.width/2,
-            start_y=self.height/2 + 150,
+            bold=True,
             anchor_x="center",
             anchor_y="center",
             rotation=cos(time.time() * 3) * 10)
@@ -220,45 +216,43 @@ class MyGame(arcade.Window):
         ## draw HighScore
         arcade.draw_text(
             text="HighScore: {}".format(round(self.time_since_start)),
-            bold=True,
+            x=self.width/2,
+            y=self.height - 35,
             font_size=22,
-            start_x=self.width/2,
-            start_y=self.height - 35,
+            bold=True,
             anchor_x="center",
             anchor_y="center")
-
-        self.ctx.flush()
 
         ## tutorial text
         if self.time_since_start < 3:
             arcade.draw_text(
                 text="Light kills you :)",
+                x=self.width/2,
+                y=self.height/4,
                 bold=True,
                 font_size=22,
-                start_x=self.width/2,
-                start_y=self.height/4,
                 anchor_x="center",
                 anchor_y="center")
         if 3 < self.time_since_start < 5:
             arcade.draw_text(
                 text="ZQSD for moving, Space to dash",
+                x=self.width/2,
+                y=self.height/4,
                 bold=True,
                 font_size=22,
-                multiline=True,
-                start_x=self.width/2,
-                start_y=self.height/4,
                 anchor_x="center",
                 anchor_y="center")
         if 5 < self.time_since_start < 7:
             arcade.draw_text(
                 text="You are invicible while dashing",
+                x=self.width/2,
+                y=self.height/4,
                 bold=True,
                 font_size=22,
-                multiline=True,
-                start_x=self.width/2,
-                start_y=self.height/4,
                 anchor_x="center",
                 anchor_y="center")
+
+        self.ctx.flush()
 
         glClear(GL_STENCIL_BUFFER_BIT)
         glStencilMask(1)
@@ -278,21 +272,20 @@ class MyGame(arcade.Window):
 
         ## draw trail particles (trailSystem)
         for p in self.trailSystem.particles:
-            arcade.draw_rectangle_filled(p.x, p.y, width=3, height=3, color=(0, 255, 255, map_range(p.lifetime, 0, 1, 0, 255)))
+            alpha = max(0, min(255, map_range(p.lifetime, 0, 1, 0, 255)))
+            arcade.draw_point(p.x, p.y, color=(0, 255, 255, alpha), size=3)
 
         ## draw player
         if self.player.is_dashing:
-            arcade.draw_rectangle_filled(center_x=self.player.x, center_y=self.player.y, width=self.player.scale, height=self.player.scale,
-                color=(0, 255, 255))
+            arcade.draw_point(x=self.player.x, y=self.player.y, color=(0, 255, 255), size=self.player.scale)
+
         else:
-            arcade.draw_rectangle_filled(center_x=self.player.x, center_y=self.player.y, width=self.player.scale, height=self.player.scale,
-                color=(180, 0, 0) if self.player.dash_cooldown > 0 else (0, 180, 0))
+            arcade.draw_point(x=self.player.x, y=self.player.y, color=(180, 0, 0) if self.player.dash_cooldown > 0 else (0, 180, 0), size=self.player.scale)
 
         ## draw player's dash cooldown
         if self.player.dash_cooldown > 0:
-            arcade.draw_rectangle_filled(center_x=self.player.x, center_y=self.player.y+20, height=5,
-                color=(0, 255, 255),
-                width=map_range(self.player.dash_cooldown, 0, self.player.max_dash_cooldown, 40, 0))
+            rect = arcade.XYWH(self.player.x, self.player.y+20, map_range(self.player.dash_cooldown, 0, self.player.max_dash_cooldown, 40, 0), 5)
+            arcade.draw_rect_filled(rect, color=(0, 255, 255))
 
     def isOffScreen(self, shape, margin=1000):
         margin=self.width * 3/4

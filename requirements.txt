@@ -1,5 +1,4 @@
-moderngl-window==2.4.5
-pyglet==2.0.10
-arcade==3.0.0.dev25
-
+pyglet==2.1.11
+arcade==3.3.3
 pyopengl==3.1.6
+glcontext==3.0.0

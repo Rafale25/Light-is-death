@@ -1,13 +1,11 @@
-# import glm
 from pyglet.math import Vec2
-import time
-from moderngl_window.context.pyglet import Keys
+from pyglet.window import key
 
 ACTION_PRESS = 1
 ACTION_RELEASE = 0
 
 class Player:
-    def __init__(self, x, y, keys=Keys):
+    def __init__(self, x, y, keys=key):
         self.pos = Vec2(x, y)
         self.vel = Vec2(0.0, 0.0)
 
@@ -43,7 +41,7 @@ class Player:
     def update(self, delta_time):
         ### Dash
         ## if dash pressed && cooldown finished && is moving
-        if self.dash and self.dash_cooldown <= 0 and self.vel.mag > 0:
+        if self.dash and self.dash_cooldown <= 0 and self.vel.length() > 0:
             self.is_dashing = True
 
         ## update dash_stamina
@@ -77,7 +75,7 @@ class Player:
                 self.vel += Vec2(1.0, 0.0)
 
         ## Apply vel ...
-        if self.vel.mag > 0.001:
+        if self.vel.length() > 0.001:
             self.vel = self.vel.normalize()
 
         if self.is_dashing:
