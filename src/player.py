@@ -1,20 +1,18 @@
 from pyglet.math import Vec2
-from pyglet.window import key
+from pyglet.window import key as Keys
+import globals
 
 ACTION_PRESS = 1
 ACTION_RELEASE = 0
 
 class Player:
-    def __init__(self, x, y, keys=key):
+    def __init__(self, x, y):
         self.pos = Vec2(x, y)
         self.vel = Vec2(0.0, 0.0)
 
         self.speed = 4.0
         self.dash_mult = 2.2
         self.scale = 15
-
-        ## keys constant
-        self.keys = keys
 
         self.move_up = False
         self.move_down = False
@@ -85,35 +83,56 @@ class Player:
 
     def key_input(self, key, action, modifiers):
         ## Up
-        if key == self.keys.Z:
+        if not globals.keyboard in ('azerty', 'qwerty'):
+            print('Invalide keyboard')
+            exit()
+
+        mappings = {
+            'qwerty': {
+                'up': Keys.W,
+                'left': Keys.A,
+                'down': Keys.S,
+                'right': Keys.D,
+            },
+            'azerty': {
+                'up': Keys.Z,
+                'left': Keys.Q,
+                'down': Keys.S,
+                'right': Keys.D,
+            }
+        }
+
+        mapping = mappings[globals.keyboard]
+
+        if key == mapping['up']:
             if action == ACTION_PRESS:
                 self.move_up = True
             elif action == ACTION_RELEASE:
                 self.move_up = False
 
         ## Right
-        if key == self.keys.D:
+        if key == mapping['right']:
             if action == ACTION_PRESS:
                 self.move_right = True
             elif action == ACTION_RELEASE:
                 self.move_right = False
 
         ## Left
-        if key == self.keys.Q:
+        if key == mapping['left']:
             if action == ACTION_PRESS:
                 self.move_left = True
             elif action == ACTION_RELEASE:
                 self.move_left = False
 
         ## Down
-        if key == self.keys.S:
+        if key == mapping['down']:
             if action == ACTION_PRESS:
                 self.move_down = True
             elif action == ACTION_RELEASE:
                 self.move_down = False
 
         ## Dash
-        elif key == self.keys.SPACE:
+        elif key == Keys.SPACE:
             if action == ACTION_PRESS:
                 self.dash = True
             elif action == ACTION_RELEASE:

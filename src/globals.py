@@ -1,0 +1,1 @@
+keyboard = 'qwerty' ## qwerty, azerty
