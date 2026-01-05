@@ -344,7 +344,7 @@ class Game(arcade.View):
         if self.time_since_start < 3:
             self.text_tutorial.text = "Light kills you :)"
         elif self.time_since_start < 5:
-            self.text_tutorial.text = "ZQSD for moving, Space to dash"
+            self.text_tutorial.text = ("WASD" if globals.keyboard == 'qwerty' else "ZQSD") + " for moving, Space to dash"
         elif self.time_since_start < 7:
             self.text_tutorial.text = "You are invicible while dashing"
 
