@@ -467,3 +467,5 @@ if __name__ == "__main__":
     window.show_view(game_view)
 
     arcade.run()
+
+# pyinstaller --onefile --noconsole --add-data "resources;resources" ./src/main.py
