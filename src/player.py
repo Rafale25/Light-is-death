@@ -10,7 +10,7 @@ class Player:
         self.pos = Vec2(x, y)
         self.vel = Vec2(0.0, 0.0)
 
-        self.speed = 4.0
+        self.speed = 240.0
         self.dash_mult = 2.2
         self.scale = 15
 
@@ -79,7 +79,7 @@ class Player:
         if self.is_dashing:
             self.vel *= self.dash_mult
 
-        self.pos += self.vel * self.speed
+        self.pos += self.vel * self.speed * delta_time
 
     def key_input(self, key, action, modifiers):
         ## Up
