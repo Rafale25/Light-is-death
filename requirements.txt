@@ -1,4 +1,4 @@
 pyglet==2.1.11
 arcade==3.3.3
-pyopengl==3.1.6
+pyopengl==3.1.10
 glcontext==3.0.0
