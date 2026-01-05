@@ -183,9 +183,6 @@ class Game(arcade.View):
             "SHAPE":  self.window.ctx.program(
                 vertex_shader=vert,
                 fragment_shader=frag)
-            # "SHAPE": self.ctx.load_program(
-            #     vertex_shader=f'{ASSETS_PATH}/shape.vert',
-            #     fragment_shader=f'{ASSETS_PATH}/shape.frag'),
         }
 
         self.quad = arcade.gl.geometry.quad_2d(size=(1, 1), pos=(0, 0))
@@ -445,9 +442,6 @@ class Game(arcade.View):
     def on_key_press(self, key, key_modifiers):
         if key == arcade.key.ESCAPE:
             self.window.show_view(MenuView(self))
-
-        # if key == arcade.key.ESCAPE:
-        #     self.close()
 
         if key == arcade.key.SPACE:
             if self.game_state == STATE_START:
